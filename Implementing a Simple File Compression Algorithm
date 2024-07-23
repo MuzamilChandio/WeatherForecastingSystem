@@ -1,0 +1,80 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+
+// Function to read a file into a string
+std::string readFile(const std::string& filename) {
+    std::ifstream file(filename, std::ios::binary);
+    if (!file) {
+        std::cerr << "Error opening file: " << filename << std::endl;
+        return "";
+    }
+    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    return content;
+}
+
+// Function to write a string to a file
+void writeFile(const std::string& filename, const std::string& content) {
+    std::ofstream file(filename, std::ios::binary);
+    if (!file) {
+        std::cerr << "Error opening file: " << filename << std::endl;
+        return;
+    }
+    file << content;
+}
+
+// Function to compress data using Run-Length Encoding (RLE)
+std::string compress(const std::string& data) {
+    std::string compressed;
+    for (size_t i = 0; i < data.length(); ++i) {
+        size_t count = 1;
+        while (i < data.length() - 1 && data[i] == data[i + 1]) {
+            ++i;
+            ++count;
+        }
+        compressed += data[i];
+        compressed += std::to_string(count);
+    }
+    return compressed;
+}
+
+// Function to decompress data using Run-Length Encoding (RLE)
+std::string decompress(const std::string& data) {
+    std::string decompressed;
+    for (size_t i = 0; i < data.length(); ++i) {
+        char ch = data[i];
+        ++i;
+        std::string countStr;
+        while (i < data.length() && std::isdigit(data[i])) {
+            countStr += data[i];
+            ++i;
+        }
+        --i;
+        int count = std::stoi(countStr);
+        decompressed.append(count, ch);
+    }
+    return decompressed;
+}
+
+int main() {
+    std::string inputFilename = "input.txt";
+    std::string compressedFilename = "compressed.txt";
+    std::string decompressedFilename = "decompressed.txt";
+
+    std::string content = readFile(inputFilename);
+    if (content.empty()) {
+        std::cerr << "Input file is empty or cannot be read." << std::endl;
+        return 1;
+    }
+
+    // Compress the content
+    std::string compressedContent = compress(content);
+    writeFile(compressedFilename, compressedContent);
+
+    // Decompress the content
+    std::string decompressedContent = decompress(compressedContent);
+    writeFile(decompressedFilename, decompressedContent);
+
+    std::cout << "Compression and decompression completed." << std::endl;
+    return 0;
+}
